@@ -22,7 +22,6 @@ app.use("/api/v1/users", userRoutes);
 
 app.use("/api/v1/users", favouriteRoutes);
 
-
 app.use((err, req, res, next) => {
   if (err instanceof ApiError) {
     return res.status(err.statusCode).json({

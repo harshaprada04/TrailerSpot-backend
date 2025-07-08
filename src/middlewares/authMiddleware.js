@@ -3,7 +3,7 @@ import { User } from "../model/userModel.js";
 import ApiError from "../utils/ApiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 
-const authMiddleware = asyncHandler(async (req, res, next) => {
+const authMiddleWare = asyncHandler(async (req, res, next) => {
   const token = req.headers.token; 
 
   if (!token) {
@@ -25,4 +25,4 @@ const authMiddleware = asyncHandler(async (req, res, next) => {
   }
 });
 
-export default authMiddleware;
+export default authMiddleWare;

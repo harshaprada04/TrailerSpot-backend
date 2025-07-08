@@ -9,7 +9,9 @@ const videoSchema = new mongoose.Schema({
         type: String
       },
       "id": {
-        type: Number
+        type: String,
+    required: true,
+    unique: true,
       },
       "original_language": {
         type: String
@@ -21,7 +23,7 @@ const videoSchema = new mongoose.Schema({
         type: String
       },
       "popularity": {
-        type: Number
+        type: String
       },
       "poster_path":{
         type: String
@@ -33,10 +35,10 @@ const videoSchema = new mongoose.Schema({
         type: String
       },
       "vote_average": {
-        type: Number
+        type: String
       },
       "vote_count": {
-        type: Number
+        type: String
       },
 }, { timestamps: true });
 

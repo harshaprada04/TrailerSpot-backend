@@ -16,8 +16,11 @@ app.use(cookieParser());
 
 import userRoutes from './routes/user.routes.js';
 import ApiError from './utils/ApiError.js';
+import favouriteRoutes from './routes/favourite.routes.js';
 
 app.use("/api/v1/users", userRoutes);
+
+app.use("/api/v1/users", favouriteRoutes);
 
 
 app.use((err, req, res, next) => {

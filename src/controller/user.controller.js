@@ -60,9 +60,14 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(res).toResponse("User not found", 404);
   }
 
-  throw new ApiResponse(res).success({
-    user: currentUser,
-  });
+  // throw new ApiResponse(res).success({
+  //   user: currentUser,
+  // });
+  return new ApiResponse(res).success(
+  { user: currentUser },
+  "User created successfully",
+  201
+); 
 });
 
 const loginUser = asyncHandler(async (req, res) => {
@@ -94,14 +99,46 @@ const loginUser = asyncHandler(async (req, res) => {
 
   const { accessToken, refreshToken } = await generateToken(userData._id);
 
-  // console.log(accessToken, refreshToken);
+  // throw new ApiResponse(res).success({
+  //   statusCode: 200,
+  //   message: "Login successful",
+  //   user: userData,
+  //   accessToken: accessToken,
+  //   refreshToken: refreshToken,
+  // });
 
-  throw new ApiResponse(res).success({
-    message: "Login successful",
+  return new ApiResponse(res).success(
+  {
     user: userData,
-    accessToken: accessToken,
-    refreshToken: refreshToken,
-  });
+    accessToken,
+    refreshToken
+  },
+  "Login successful",
+  200
+);
 });
 
-export { registerUser, loginUser };
+const currentUserData = asyncHandler(async (req, res) => {
+  // get user from request
+  // return user data
+
+  const user = req.user;
+
+  if (!user) {
+    throw new ApiError("User not found", 404);
+  }
+
+  const currentUser = await User.findById(user._id).select("-password -refreshToken");
+
+  if (!currentUser) {
+    throw new ApiError("User not found", 404);
+  }
+
+  return new ApiResponse(res).success(
+    { user: currentUser },
+    "User data retrieved successfully",
+    200
+  );
+});
+
+export { registerUser, loginUser, currentUserData };

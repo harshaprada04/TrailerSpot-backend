@@ -5,40 +5,33 @@ import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 
 const favouriteController = asyncHandler(async (req, res, next) => {
-  // i need to check all these fields "adult" "backdrop_path" "id"  "original_language" "original_name"  "overview"  "popularity" "poster_path" "first_air_date" "name", "vote_average" "vote_count"
-  // i need to check whether this movie already exists in the user database as favourite or not
-  // if exists, return error
-
   const user = req.user;
+
   const {
-    adult,
-    backdrop_path,
     id,
-    original_language,
-    original_name,
-    overview,
-    popularity,
-    poster_path,
-    first_air_date,
+    original_title,
     name,
+    overview,
     vote_average,
-    vote_count,
+    isOriginal,
+    image,
   } = req.body;
 
-  if (
-    [
-      backdrop_path,
-      id,
-      original_name,
-      overview,
-      popularity,
-      poster_path,
-      name,
-      vote_average,
-      vote_count,
-    ].some((field) => field == " " || field == null)
-  ) {
-    throw new ApiError("All fields are required", 401);
+  // Validate all required fields
+  const requiredFields = {
+    id,
+    original_title,
+    name,
+    overview,
+    vote_average,
+    isOriginal,
+    image,
+  };
+
+  for (const [key, value] of Object.entries(requiredFields)) {
+    if (value === undefined || value === null || String(value).trim() === "") {
+      throw new ApiError(`Field "${key}" is required`, 400);
+    }
   }
 
   const currentUser = await User.findById(user._id).select(
@@ -48,35 +41,31 @@ const favouriteController = asyncHandler(async (req, res, next) => {
     throw new ApiError("User not found", 404);
   }
 
+  // Check if video exists, else create
   let video = await Video.findOne({ id });
-
   if (!video) {
     video = await Video.create({
-      adult,
-      backdrop_path,
       id,
-      original_language,
-      original_name,
-      overview,
-      popularity,
-      poster_path,
-      first_air_date,
+      original_title,
       name,
+      overview,
       vote_average,
-      vote_count,
+      isOriginal,
+      image,
     });
   }
 
+  // Check if already in favourites
   const isMovieExists = currentUser.favouriteList?.some(
     (movieId) => movieId.toString() === video._id.toString()
   );
+
   if (isMovieExists) {
     throw new ApiError("Movie already exists in favourites", 400);
   }
 
+  // Add to favourites
   currentUser.favouriteList.push(video._id);
-  await currentUser.save({ validateModifiedOnly: true });
-
   await currentUser.save({ validateModifiedOnly: true });
 
   return new ApiResponse(res).success(
@@ -85,6 +74,7 @@ const favouriteController = asyncHandler(async (req, res, next) => {
     201
   );
 });
+
 
 const favouriteList = asyncHandler(async(req,res,next)=>{
      const user = req.user; 
@@ -105,10 +95,17 @@ const favouriteList = asyncHandler(async(req,res,next)=>{
 
 const removeFromFavourites = asyncHandler(async (req, res) => {
   const user = req.user;
-  const { videoId } = req.params;
+  const { videoId } = req.params; // This is the TMDB ID from frontend
 
   if (!videoId) {
     throw new ApiError("Video ID is required", 400);
+  }
+
+  // 1. Find the video by TMDB id
+  const video = await Video.findOne({ id: videoId });
+
+  if (!video) {
+    throw new ApiError("Video not found in database", 404);
   }
 
   const currentUser = await User.findById(user._id);
@@ -118,13 +115,13 @@ const removeFromFavourites = asyncHandler(async (req, res) => {
 
   const originalLength = currentUser.favouriteList.length;
 
-  // Remove the videoId if exists
+  // 2. Remove video._id from user's favourites
   currentUser.favouriteList = currentUser.favouriteList.filter(
-    (vid) => vid.toString() !== videoId.toString()
+    (favId) => favId.toString() !== video._id.toString()
   );
 
   if (currentUser.favouriteList.length === originalLength) {
-    throw new ApiError("Video not found in favourites", 404);
+    throw new ApiError("Movie not found in favourites", 404);
   }
 
   await currentUser.save({ validateModifiedOnly: true });
@@ -134,5 +131,6 @@ const removeFromFavourites = asyncHandler(async (req, res) => {
     "Movie removed from favourites successfully"
   );
 });
+
 
 export { favouriteController, favouriteList , removeFromFavourites};

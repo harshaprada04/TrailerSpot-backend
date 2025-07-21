@@ -18,10 +18,13 @@ app.use(cookieParser());
 import userRoutes from "./src/routes/user.routes.js";
 import ApiError from "./src/utils/ApiError.js";
 import favouriteRoutes from "./src/routes/favourite.routes.js";
+import historyRouter from "./src/routes/history.routes.js";
 
 app.use("/api/v1/users", userRoutes);
 
 app.use("/api/v1/users", favouriteRoutes);
+
+app.use("/api/v1/users", historyRouter);
 
 app.use((err, req, res, next) => {
   if (err instanceof ApiError) {
